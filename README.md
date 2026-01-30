@@ -32,13 +32,3 @@ Créer un modèle spécialisé pour générer des itinéraires de voyage jour-pa
 
 ---
 
-## Conseils et prochaines étapes 💡
-- Ajoutez plus d'exemples dans `data/` (50–100+ pour de meilleurs résultats) en respectant le format JSONL.
-- Évaluez la qualité et itérez sur le dataset et les prompts.
-- Si besoin, utilisez des GPU cloud pour des steps de fine-tuning plus importants.
-
----
-
-Si vous voulez, je peux :
-- Ajouter 50+ exemples automatiquement (je peux générer des itinéraires synthétiques),
-- Écrire des tests unitaires ou un petit serveur API pour exposer le modèle.

@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voyageur AI – Générateur d'Itinéraires</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FBF8F3;
+            --dark-green: #1B3A2F;
+            --accent-gold: #D4AF37;
+            --sage: #87A96B;
+            --warm-gray: #4A4A4A;
+            --light-sage: #E8F0E3;
+            --mint: #C8E6C9;
+            --coral: #FF6B6B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, var(--cream) 0%, var(--light-sage) 100%);
+            color: var(--dark-green);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Décoration de fond */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            right: -20%;
+            width: 80%;
+            height: 120%;
+            background: radial-gradient(circle, rgba(135, 169, 107, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-50px, 50px) rotate(5deg); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 30px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 80px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 900;
+            color: var(--dark-green);
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+            line-height: 1.1;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--warm-gray);
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+
+        /* Main Card */
+        .card {
+            background: white;
+            border-radius: 30px;
+            padding: 50px;
+            box-shadow: 
+                0 10px 60px rgba(27, 58, 47, 0.08),
+                0 0 0 1px rgba(27, 58, 47, 0.05);
+            margin-bottom: 40px;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Form Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 35px;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Form Styling */
+        .form-group {
+            margin-bottom: 35px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: var(--dark-green);
+            margin-bottom: 12px;
+            font-size: 1.05rem;
+            letter-spacing: 0.3px;
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            color: var(--sage);
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 18px 24px;
+            border: 2px solid rgba(27, 58, 47, 0.1);
+            border-radius: 16px;
+            font-size: 1rem;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--cream);
+        }
+
+        .input-with-icon input {
+            padding-left: 55px;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--sage);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(135, 169, 107, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Budget Slider */
+        .budget-display {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .budget-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--dark-green);
+            font-family: 'Playfair Display', serif;
+        }
+
+        .budget-label {
+            font-size: 0.9rem;
+            color: var(--warm-gray);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: linear-gradient(to right, var(--sage) 0%, var(--accent-gold) 100%);
+            outline: none;
+            -webkit-appearance: none;
+            margin: 10px 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--dark-green);
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--dark-green);
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        /* Interests Tags */
+        .interests-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .interest-tag {
+            padding: 10px 20px;
+            background: var(--light-sage);
+            border: 2px solid transparent;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            user-select: none;
+        }
+
+        .interest-tag:hover {
+            background: var(--sage);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .interest-tag.selected {
+            background: var(--dark-green);
+            color: white;
+            border-color: var(--accent-gold);
+        }
+
+        /* Custom Interest Input */
+        .custom-interest-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .custom-interest-group input {
+            flex: 1;
+        }
+
+        .add-btn {
+            padding: 18px 30px;
+            background: var(--sage);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .add-btn:hover {
+            background: var(--dark-green);
+            transform: scale(1.05);
+        }
+
+        /* Generate Button */
+        .generate-btn {
+            width: 100%;
+            padding: 24px;
+            background: linear-gradient(135deg, var(--dark-green) 0%, var(--sage) 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 30px rgba(27, 58, 47, 0.25);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .generate-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .generate-btn:hover::before {
+            left: 100%;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(27, 58, 47, 0.35);
+        }
+
+        .generate-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .generate-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Loading State */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--light-sage);
+            border-top-color: var(--dark-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Results - NEW BEAUTIFUL DESIGN */
+        .results {
+            display: none;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        /* Result Header with Trip Summary */
+        .trip-summary {
+            background: linear-gradient(135deg, var(--dark-green) 0%, var(--sage) 100%);
+            color: white;
+            border-radius: 25px;
+            padding: 40px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .trip-summary::before {
+            content: '✈️';
+            position: absolute;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 120px;
+            opacity: 0.1;
+        }
+
+        .trip-summary h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .trip-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .meta-item {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .meta-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .meta-label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .meta-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        /* Itinerary Content - Styled Output */
+        .itinerary-wrapper {
+            background: white;
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.05);
+        }
+
+        .itinerary-content {
+            line-height: 1.9;
+            font-size: 1.05rem;
+            color: var(--warm-gray);
+        }
+
+        /* Parse and style the itinerary */
+        .day-section {
+            background: var(--cream);
+            border-left: 4px solid var(--accent-gold);
+            padding: 30px;
+            margin-bottom: 25px;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .day-section:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        .day-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--dark-green);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .day-number {
+            background: var(--accent-gold);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .activity-block {
+            margin: 20px 0;
+            padding-left: 20px;
+            border-left: 2px solid var(--sage);
+        }
+
+        .time-badge {
+            display: inline-block;
+            background: var(--sage);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .cost-badge {
+            display: inline-block;
+            background: var(--accent-gold);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 15px 30px;
+            border: 2px solid var(--dark-green);
+            background: white;
+            color: var(--dark-green);
+            border-radius: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .action-btn:hover {
+            background: var(--dark-green);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Error Message */
+        .error {
+            background: #fee;
+            border: 2px solid #c33;
+            color: #c33;
+            padding: 20px;
+            border-radius: 16px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            .card {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .trip-summary {
+                padding: 25px;
+            }
+
+            .trip-meta {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>✈️ Voyageur AI</h1>
+            <p class="subtitle">Créez votre itinéraire de voyage personnalisé avec budget</p>
+        </header>
+
+        <div class="card">
+            <form id="itineraryForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="destination">📍 Destination</label>
+                        <div class="input-with-icon">
+                            <span class="input-icon">🌍</span>
+                            <input 
+                                type="text" 
+                                id="destination" 
+                                placeholder="Ex: Paris, Tokyo, New York..."
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="duration">📅 Durée du séjour (jours)</label>
+                        <div class="input-with-icon">
+                            <span class="input-icon">🗓️</span>
+                            <input 
+                                type="number" 
+                                id="duration" 
+                                min="1" 
+                                max="30" 
+                                value="5"
+                                required
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="budget">💰 Budget Total Disponible</label>
+                    <div class="budget-display">
+                        <div class="budget-value" id="budgetDisplay">$2,000</div>
+                        <div class="budget-label">Budget USD</div>
+                    </div>
+                    <input 
+                        type="range" 
+                        id="budget" 
+                        min="0" 
+                        max="20000" 
+                        value="2000" 
+                        step="100"
+                    >
+                    <div style="display: flex; justify-content: space-between; color: var(--warm-gray); font-size: 0.9rem; margin-top: 5px;">
+                        <span>Budget limité</span>
+                        <span>Budget flexible</span>
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label>🎯 Vos intérêts</label>
+                    <div class="interests-container" id="interestsContainer">
+                        <div class="interest-tag" data-interest="art">🎨 Art & Culture</div>
+                        <div class="interest-tag" data-interest="food">🍽️ Gastronomie</div>
+                        <div class="interest-tag" data-interest="nature">🌳 Nature</div>
+                        <div class="interest-tag" data-interest="history">🏛️ Histoire</div>
+                        <div class="interest-tag" data-interest="adventure">🏔️ Aventure</div>
+                        <div class="interest-tag" data-interest="shopping">🛍️ Shopping</div>
+                        <div class="interest-tag" data-interest="nightlife">🌃 Vie nocturne</div>
+                        <div class="interest-tag" data-interest="relaxation">🧘 Détente</div>
+                    </div>
+                    <div class="custom-interest-group">
+                        <input 
+                            type="text" 
+                            id="customInterest" 
+                            placeholder="Ajouter un intérêt personnalisé..."
+                        >
+                        <button type="button" class="add-btn" id="addInterestBtn">+ Ajouter</button>
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="model">🤖 Modèle IA</label>
+                    <select id="model">
+                        <option value="mistral:7b-instruct">Mistral 7B (Recommandé)</option>
+                        <option value="my-travel-itinerary-model">Modèle Fine-tuné</option>
+                        <option value="llama2:7b">Llama 2 7B</option>
+                        <option value="gemma:7b">Gemma 7B</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="generate-btn" id="generateBtn">
+                    🚀 Générer mon itinéraire
+                </button>
+
+                <div class="error" id="errorMsg"></div>
+            </form>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>✨ Création de votre itinéraire personnalisé...</p>
+        </div>
+
+        <div class="results" id="results">
+            <div class="card">
+                <div class="trip-summary">
+                    <h2 id="resultTitle"></h2>
+                    <div class="trip-meta">
+                        <div class="meta-item">
+                            <div class="meta-icon">📅</div>
+                            <div class="meta-label">Durée</div>
+                            <div class="meta-value" id="metaDuration"></div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-icon">💰</div>
+                            <div class="meta-label">Budget</div>
+                            <div class="meta-value" id="metaBudget"></div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-icon">🎯</div>
+                            <div class="meta-label">Intérêts</div>
+                            <div class="meta-value" id="metaInterests"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="itinerary-wrapper">
+                    <div class="itinerary-content" id="itineraryContent"></div>
+                    
+                    <div class="action-buttons">
+                        <button class="action-btn" onclick="window.print()">
+                            🖨️ Imprimer
+                        </button>
+                        <button class="action-btn" onclick="copyItinerary()">
+                            📋 Copier
+                        </button>
+                        <button class="action-btn" onclick="downloadItinerary()">
+                            💾 Télécharger
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // État de l'application
+        const state = {
+            selectedInterests: new Set(),
+            currentItinerary: ''
+        };
+
+        // Éléments DOM
+        const form = document.getElementById('itineraryForm');
+        const generateBtn = document.getElementById('generateBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const errorMsg = document.getElementById('errorMsg');
+        const interestsContainer = document.getElementById('interestsContainer');
+        const customInterestInput = document.getElementById('customInterest');
+        const addInterestBtn = document.getElementById('addInterestBtn');
+        const budgetSlider = document.getElementById('budget');
+        const budgetDisplay = document.getElementById('budgetDisplay');
+
+        // Mise à jour du budget en temps réel
+        budgetSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            budgetDisplay.textContent = value === 0 ? 'Pas de limite' : `$${value.toLocaleString()}`;
+        });
+
+        // Gestion des tags d'intérêts
+        interestsContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('interest-tag')) {
+                const interest = e.target.dataset.interest;
+                e.target.classList.toggle('selected');
+                
+                if (state.selectedInterests.has(interest)) {
+                    state.selectedInterests.delete(interest);
+                } else {
+                    state.selectedInterests.add(interest);
+                }
+            }
+        });
+
+        // Ajouter un intérêt personnalisé
+        addInterestBtn.addEventListener('click', () => {
+            const customInterest = customInterestInput.value.trim();
+            if (customInterest) {
+                const tag = document.createElement('div');
+                tag.className = 'interest-tag selected';
+                tag.dataset.interest = customInterest;
+                tag.textContent = `✨ ${customInterest}`;
+                interestsContainer.appendChild(tag);
+                
+                state.selectedInterests.add(customInterest);
+                customInterestInput.value = '';
+            }
+        });
+
+        // Permettre d'ajouter avec Enter
+        customInterestInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addInterestBtn.click();
+            }
+        });
+
+        // Soumettre le formulaire
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Récupérer les données
+            const destination = document.getElementById('destination').value.trim();
+            const duration = parseInt(document.getElementById('duration').value);
+            const budget = parseInt(budgetSlider.value);
+            const model = document.getElementById('model').value;
+            const interests = Array.from(state.selectedInterests);
+
+            // Validation
+            if (!destination) {
+                showError('Veuillez entrer une destination');
+                return;
+            }
+
+            if (interests.length === 0) {
+                showError('Veuillez sélectionner au moins un intérêt');
+                return;
+            }
+
+            // Afficher le loading
+            hideError();
+            results.classList.remove('active');
+            loading.classList.add('active');
+            generateBtn.disabled = true;
+
+            try {
+                // Appeler l'API
+                const response = await fetch('http://localhost:5000/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        destination,
+                        duration,
+                        interests,
+                        budget: budget === 0 ? null : budget,
+                        model
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    showError(data.error || 'Une erreur est survenue');
+                }
+            } catch (error) {
+                showError('Impossible de se connecter au serveur. Assurez-vous que le backend est démarré.');
+                console.error('Erreur:', error);
+            } finally {
+                loading.classList.remove('active');
+                generateBtn.disabled = false;
+            }
+        });
+
+        // Afficher les résultats avec style
+        function displayResults(data) {
+            state.currentItinerary = data.itinerary;
+            
+            document.getElementById('resultTitle').textContent = `Votre voyage à ${data.destination}`;
+            document.getElementById('metaDuration').textContent = `${data.duration} jour${data.duration > 1 ? 's' : ''}`;
+            document.getElementById('metaBudget').textContent = data.budget ? `$${data.budget.toLocaleString()}` : 'Flexible';
+            document.getElementById('metaInterests').textContent = data.interests.slice(0, 2).join(', ');
+            
+            // Formatter l'itinéraire avec style
+            const formatted = formatItinerary(data.itinerary);
+            document.getElementById('itineraryContent').innerHTML = formatted;
+            
+            results.classList.add('active');
+            results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Formatter l'itinéraire pour un affichage stylé
+        function formatItinerary(text) {
+            // Diviser en sections de jours
+            const lines = text.split('\n');
+            let formatted = '';
+            let currentDay = '';
+            let dayContent = '';
+            let dayNumber = 0;
+            
+            lines.forEach(line => {
+                // Détecter les titres de jour (Day 1, Jour 1, etc.)
+                if (line.match(/^(Day|Jour)\s+\d+/i)) {
+                    if (currentDay) {
+                        formatted += createDaySection(dayNumber, currentDay, dayContent);
+                    }
+                    dayNumber++;
+                    currentDay = line;
+                    dayContent = '';
+                } else if (line.trim()) {
+                    dayContent += line + '\n';
+                }
+            });
+            
+            // Ajouter le dernier jour
+            if (currentDay) {
+                formatted += createDaySection(dayNumber, currentDay, dayContent);
+            }
+            
+            // Si aucun jour n'est détecté, afficher le texte brut formaté
+            if (!formatted) {
+                formatted = `<div class="day-section">${text.replace(/\n/g, '<br>')}</div>`;
+            }
+            
+            return formatted;
+        }
+
+        // Créer une section de jour stylée
+        function createDaySection(number, title, content) {
+            // Détecter les coûts et les horaires
+            content = content.replace(/\$\d+(?:,\d{3})*(?:\.\d{2})?/g, match => 
+                `<span class="cost-badge">${match}</span>`
+            );
+            
+            content = content.replace(/\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)?/g, match => 
+                `<span class="time-badge">${match}</span>`
+            );
+            
+            return `
+                <div class="day-section">
+                    <div class="day-title">
+                        <div class="day-number">${number}</div>
+                        <span>${title}</span>
+                    </div>
+                    <div class="activity-block">
+                        ${content.replace(/\n/g, '<br>')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Copier l'itinéraire
+        function copyItinerary() {
+            navigator.clipboard.writeText(state.currentItinerary).then(() => {
+                alert('✅ Itinéraire copié dans le presse-papiers !');
+            });
+        }
+
+        // Télécharger l'itinéraire
+        function downloadItinerary() {
+            const blob = new Blob([state.currentItinerary], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `itinerary-${document.getElementById('destination').value}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Afficher une erreur
+        function showError(message) {
+            errorMsg.textContent = message;
+            errorMsg.classList.add('active');
+            setTimeout(() => {
+                hideError();
+            }, 5000);
+        }
+
+        // Masquer l'erreur
+        function hideError() {
+            errorMsg.classList.remove('active');
+        }
+    </script>
+</body>
+</html>

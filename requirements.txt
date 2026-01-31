@@ -1,6 +1,6 @@
 # Dépendances minimales
 # Installez via: pip install -r requirements.txt
-ollama==0.15.2
+ollama
 Flask==3.0.0
 flask-cors==4.0.0
 requests==2.31.0

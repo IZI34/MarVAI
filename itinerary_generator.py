@@ -6,7 +6,9 @@ import requests
 from typing import List, Optional
 
 # Configuration de l'API Ollama Cloud
-OLLAMA_API_KEY = os.environ.get('OLLAMA_API_KEY', 'fc289982b86c43a8932b374295b7bd7b.fLzWxh3aqp2BQTPMo04iJzKT')
+#OLLAMA_API_KEY = os.environ.get('OLLAMA_API_KEY', 'fc289982b86c43a8932b374295b7bd7b.fLzWxh3aqp2BQTPMo04iJzKT')
+# Modifie cette ligne dans itinerary_generator.py
+OLLAMA_API_KEY = os.environ.get('OLLAMA_API_KEY')
 OLLAMA_API_URL = os.environ.get('OLLAMA_API_URL', 'https://api.ollama.cloud/v1/chat/completions')
 
 # Nom du modèle par défaut

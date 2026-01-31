@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
             --cream: #FBF8F3;
@@ -603,6 +604,16 @@
                 width: 100%;
                 justify-content: center;
             }
+            .activity-block ul {
+    margin-left: 20px;
+    margin-bottom: 15px;
+}
+.activity-block li {
+    margin-bottom: 5px;
+}
+.activity-block strong {
+    color: var(--dark-green);
+}
         }
     </style>
 </head>
@@ -690,8 +701,8 @@
                 <div class="form-group full-width">
                     <label for="model">🤖 Modèle IA</label>
                     <select id="model">
-                        <option value="mistral:7b-instruct">Mistral 7B (Recommandé)</option>
-                        <option value="my-travel-itinerary-model">Modèle Fine-tuné</option>
+                        <option value="gpt-oss:120b-cloud">Modèle Cloud Standard (Recommandé)</option>
+                        <option value="gpt-oss:120b-cloud">Modèle Itinéraire Pro</option>
                         <option value="llama2:7b">Llama 2 7B</option>
                         <option value="gemma:7b">Gemma 7B</option>
                     </select>
@@ -928,7 +939,7 @@
         }
 
         // Créer une section de jour stylée
-        function createDaySection(number, title, content) {
+        /*function createDaySection(number, title, content) {
             // Détecter les coûts et les horaires
             content = content.replace(/\$\d+(?:,\d{3})*(?:\.\d{2})?/g, match => 
                 `<span class="cost-badge">${match}</span>`
@@ -949,7 +960,23 @@
                     </div>
                 </div>
             `;
-        }
+        }*/
+       function createDaySection(number, title, content) {
+    // Utilisation de marked pour transformer le Markdown en HTML propre
+    const formattedContent = marked.parse(content); 
+    
+    return `
+        <div class="day-section">
+            <div class="day-title">
+                <div class="day-number">${number}</div>
+                <span>${title}</span>
+            </div>
+            <div class="activity-block">
+                ${formattedContent}
+            </div>
+        </div>
+    `;
+}
 
         // Copier l'itinéraire
         function copyItinerary() {

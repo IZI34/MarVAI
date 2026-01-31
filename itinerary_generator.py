@@ -4,16 +4,18 @@ Ce fichier utilise l'API Ollama Cloud pour le déploiement.
 import os
 import requests
 from typing import List, Optional
+from ollama import Client  # Utilise la bibliothèque officielle
 
 # Configuration de l'API Ollama Cloud
-#OLLAMA_API_KEY = os.environ.get('OLLAMA_API_KEY', 'fc289982b86c43a8932b374295b7bd7b.fLzWxh3aqp2BQTPMo04iJzKT')
+OLLAMA_API_KEY = os.environ.get('OLLAMA_API_KEY', 'fc289982b86c43a8932b374295b7bd7b.fLzWxh3aqp2BQTPMo04iJzKT')
 # Modifie cette ligne dans itinerary_generator.py
-OLLAMA_API_KEY = os.environ.get('OLLAMA_API_KEY')
-OLLAMA_API_URL = os.environ.get('OLLAMA_API_URL', 'https://api.ollama.cloud/v1/chat/completions')
+#OLLAMA_API_KEY = os.environ.get('OLLAMA_API_KEY')
+#OLLAMA_API_URL = os.environ.get('OLLAMA_API_URL', 'https://api.ollama.cloud/v1/chat/completions')
+OLLAMA_HOST = "https://ollama.com"
 
 # Nom du modèle par défaut
-DEFAULT_MODEL = "mistral"  # Modèle disponible sur Ollama Cloud
-FINETUNED_MODEL = "mistral"  # Changez si vous avez un modèle fine-tuné
+DEFAULT_MODEL = "gpt-oss:120b-cloud"  # Modèle disponible sur Ollama Cloud
+FINETUNED_MODEL = "gpt-oss:120b-cloud"  # Changez si vous avez un modèle fine-tuné
 
 # Vérifier si on utilise l'API Cloud ou local
 USE_CLOUD_API = bool(OLLAMA_API_KEY and OLLAMA_API_KEY != 'your-api-key-here')
@@ -55,25 +57,13 @@ def build_prompt(destination: str, duration: int, interests: List[str], budget: 
     )
 
 
-def generate_itinerary(
+"""def generate_itinerary(
     destination: str, 
     duration: int, 
     interests: List[str], 
     budget: Optional[float] = None,
     model_name: Optional[str] = None
 ) -> str:
-    """Génère un itinéraire de voyage en utilisant Ollama Cloud API.
-    
-    Args:
-        destination: La destination du voyage
-        duration: La durée du voyage en jours
-        interests: Liste des intérêts du voyageur
-        budget: Budget total disponible (optionnel)
-        model_name: Nom du modèle à utiliser (optionnel)
-        
-    Returns:
-        L'itinéraire généré sous forme de texte
-    """
     model_name = model_name or DEFAULT_MODEL
     prompt = build_prompt(destination, duration, interests, budget)
 
@@ -127,7 +117,27 @@ def generate_itinerary(
     else:
         # Fallback: Message d'erreur si pas de clé API
         return "Erreur: Clé API Ollama non configurée. Veuillez définir OLLAMA_API_KEY."
-
+"""
+def generate_itinerary(destination, duration, interests, budget=None, model_name=None):
+    model_name = model_name or "gpt-oss:120b-cloud"
+    prompt = build_prompt(destination, duration, interests, budget)
+    
+    try:
+        # Initialisation du client comme dans la doc
+        client = Client(
+            host=OLLAMA_HOST,
+            headers={'Authorization': f'Bearer {OLLAMA_API_KEY}'}
+        )
+        
+        response = client.chat(
+            model=model_name,
+            messages=[{'role': 'user', 'content': prompt}],
+            stream=False
+        )
+        return response['message']['content']
+        
+    except Exception as e:
+        return f"Erreur API: {str(e)}"
 
 def main():
     """Fonction principale pour tester le générateur d'itinéraires."""

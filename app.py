@@ -15,13 +15,13 @@ load_dotenv()
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    from itinerary_generator import generate_itinerary, DEFAULT_MODEL, FINETUNED_MODEL
+    from itinerary_generator2 import generate_itinerary, DEFAULT_MODEL, FINETUNED_MODEL
 except ImportError:
     # Fallback si pipeline.py n'est pas trouvé
     def generate_itinerary(destination, duration, interests, budget=None, model_name=None):
         return "Erreur: Le fichier pipeline.py n'a pas été trouvé. Assurez-vous qu'il est dans le même dossier que app.py"
-    DEFAULT_MODEL = "mistral"
-    FINETUNED_MODEL = "mistral"
+    DEFAULT_MODEL = "gpt-oss:120b-cloud"
+    FINETUNED_MODEL = "gpt-oss:120b-cloud"
 
 app = Flask(__name__, static_folder='static')
 

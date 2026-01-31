@@ -15,7 +15,7 @@ load_dotenv()
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    from itinerary_generator2 import generate_itinerary, DEFAULT_MODEL, FINETUNED_MODEL
+    from itinerary_generator import generate_itinerary, DEFAULT_MODEL, FINETUNED_MODEL
 except ImportError:
     # Fallback si pipeline.py n'est pas trouvé
     def generate_itinerary(destination, duration, interests, budget=None, model_name=None):
